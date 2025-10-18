@@ -21,10 +21,11 @@ jobs:
       with:
         command: buildozer android debug
         buildozer_version: stable
+      env:
+        USER: runner
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: bible-text-converter-apk
         path: ${{ steps.buildozer.outputs.filename }}
-        
