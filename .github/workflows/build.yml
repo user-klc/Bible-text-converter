@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
 
     steps:
@@ -45,7 +45,8 @@ jobs:
           libtinfo5 \
           cmake \
           libffi-dev \
-          libssl-dev
+          libssl-dev \
+          libltdl-dev
 
     - name: Install buildozer
       run: |
