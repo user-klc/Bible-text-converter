@@ -27,4 +27,4 @@ jobs:
       with:
         name: bible-text-converter-apk
         path: ${{ steps.buildozer.outputs.filename }}
-Click Commit changes
+        
