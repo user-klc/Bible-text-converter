@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
     - name: Checkout repository
@@ -19,6 +20,27 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Cache Buildozer global directory
+      uses: actions/cache@v3
+      with:
+        path: .buildozer_global
+        key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+
+    - name: Cache Buildozer directory
+      uses: actions/cache@v3
+      with:
+        path: .buildozer
+        key: buildozer-${{ hashFiles('buildozer.spec') }}
 
     - name: Install system dependencies
       run: |
@@ -41,26 +63,38 @@ jobs:
           gstreamer1.0-plugins-good \
           zip \
           unzip \
-          openjdk-17-jdk \
           autoconf \
           libtool \
           pkg-config
 
-    - name: Install buildozer
+    - name: Install buildozer and dependencies
       run: |
         pip install --upgrade pip
-        pip install buildozer
-        pip install cython
+        pip install buildozer==1.5.0
+        pip install cython==0.29.36
+
+    - name: Accept Android SDK licenses
+      run: |
+        yes | sdkmanager --licenses || true
+
+    - name: Install Android SDK Build Tools
+      run: |
+        sdkmanager "build-tools;33.0.0" "platforms;android-33" "platform-tools"
+
+    - name: Make buildozer directory
+      run: mkdir -p .buildozer
 
     - name: Build APK with buildozer
       run: |
-        buildozer android debug
+        buildozer -v android debug
       env:
-        GRADLE_OPTS: "-Xmx2048m -Dorg.gradle.jvmargs='-Xmx2048m'"
+        GRADLE_OPTS: "-Xmx4096m -Dorg.gradle.jvmargs='-Xmx4096m'"
+        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        ANDROID_HOME: /usr/local/lib/android/sdk
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: bible-text-converter-apk
         path: bin/*.apk
-        
+        if-no-files-found: error
