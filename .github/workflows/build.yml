@@ -9,20 +9,35 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    
-    container:
-      image: kivy/buildozer:latest
-    
+    runs-on: ubuntu-20.04
+
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Build APK
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
       run: |
-        buildozer android debug
-      
-    - name: Upload APK artifact
+        sudo apt-get update
+        sudo apt-get install -y python3-pip build-essential git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        pip3 install --upgrade pip
+        pip3 install --upgrade buildozer
+        pip3 install --upgrade cython
+
+    - name: Make buildozer directory
+      run: |
+        mkdir -p ~/.buildozer
+
+    - name: Build with buildozer  
+      run: |
+        yes | buildozer android debug
+      continue-on-error: false
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: bible-text-converter-apk
